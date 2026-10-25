@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>초등 4학년 수학: 사각형 탐정단</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nanum Gothic', sans-serif;
+            background-color: #f0f9ff;
+            user-select: none;
+        }
+        .font-gaegu {
+            font-family: 'Gaegu', cursive;
+        }
+        .btn-bounce {
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+        .btn-bounce:active {
+            transform: scale(0.95);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e0f2fe;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #38bdf8;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-slate-800">
+
+    <!-- Header Navigation -->
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-sky-100 px-4 py-3 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="showScreen('menu')">
+                <div class="bg-sky-500 text-white p-2.5 rounded-2xl shadow-md">
+                    <i class="fa-solid fa-vector-square text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black text-sky-600 font-gaegu leading-none">사각형 탐정단</h1>
+                    <p class="text-xs text-slate-500 font-bold">초등 4학년 수학 도형 마스터!</p>
+                </div>
+            </div>
+
+            <!-- Header Stats -->
+            <div class="flex items-center gap-3">
+                <button onclick="showLeaderboardModal()" class="bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-800 px-3 py-1.5 rounded-full flex items-center gap-1.5 font-bold text-xs transition btn-bounce">
+                    <i class="fa-solid fa-trophy text-amber-500 text-sm"></i>
+                    <span>명예의 전당</span>
+                </button>
+                <div class="bg-sky-100 border border-sky-200 px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                    <i class="fa-solid fa-star text-sky-600 text-sm"></i>
+                    <span id="header-score" class="font-bold text-sky-800 text-sm">0 점</span>
+                </div>
+                <button onclick="toggleAudio()" id="audio-btn" class="bg-slate-100 hover:bg-slate-200 p-2.5 rounded-full text-slate-600 transition">
+                    <i class="fa-solid fa-volume-high" id="audio-icon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-4xl mx-auto w-full p-4 flex-grow flex flex-col justify-center">
+
+        <!-- 1. MAIN MENU SCREEN -->
+        <section id="screen-menu" class="space-y-6">
+            <div class="text-center py-4">
+                <span class="bg-sky-100 text-sky-800 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">초등학교 4학년 2학기 4단원</span>
+                <h2 class="text-3xl md:text-4xl font-extrabold mt-2 text-slate-800">어떤 탐정 임무를 시작할까요?</h2>
+                <p class="text-slate-500 mt-1">다양한 사각형의 성질을 배우고 사건을 해결해보세요!</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Concept Card -->
+                <div onclick="showScreen('dict')" class="bg-white rounded-3xl p-6 border-2 border-sky-100 hover:border-sky-400 card-shadow transition-all cursor-pointer btn-bounce flex flex-col justify-between group">
+                    <div>
+                        <div class="w-14 h-14 bg-sky-100 text-sky-600 rounded-2xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-book-open"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-1">도형 성질 도감</h3>
+                        <p class="text-sm text-slate-500">사다리꼴, 평행사변형, 마름모, 직사각형, 정사각형의 성질을 정리해요.</p>
+                    </div>
+                    <div class="mt-6 flex items-center text-sky-600 font-bold text-sm">
+                        <span>공부하기</span>
+                        <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </div>
+
+                <!-- Quiz Game Mode -->
+                <div onclick="startQuiz()" class="bg-white rounded-3xl p-6 border-2 border-emerald-100 hover:border-emerald-400 card-shadow transition-all cursor-pointer btn-bounce flex flex-col justify-between group">
+                    <div>
+                        <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-user-secret"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-1">도형 추리 퀴즈</h3>
+                        <p class="text-sm text-slate-500">탐정이 되어 단서(성질)를 보고 숨겨진 사각형을 맞혀보세요!</p>
+                    </div>
+                    <div class="mt-6 flex items-center text-emerald-600 font-bold text-sm">
+                        <span>추리 시작</span>
+                        <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </div>
+
+                <!-- Sorting Game Mode -->
+                <div onclick="startSortGame()" class="bg-white rounded-3xl p-6 border-2 border-amber-100 hover:border-amber-400 card-shadow transition-all cursor-pointer btn-bounce flex flex-col justify-between group">
+                    <div>
+                        <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-object-group"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-1">도형 분류 스피드 게임</h3>
+                        <p class="text-sm text-slate-500">여러 가지 사각형을 올바른 조건의 주머니로 빠르게 분류해보세요!</p>
+                    </div>
+                    <div class="mt-6 flex items-center text-amber-600 font-bold text-sm">
+                        <span>게임 시작</span>
+                        <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Concept Banner -->
+            <div class="bg-gradient-to-r from-sky-500 to-indigo-600 rounded-3xl p-6 text-white shadow-lg flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="bg-white/20 p-4 rounded-2xl text-3xl">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-lg">핵심포인트! 사각형의 포함 관계</h4>
+                        <p class="text-sky-100 text-sm">정사각형은 마름모도 되고, 직사각형도 되고, 평행사변형도 돼요!</p>
+                    </div>
+                </div>
+                <button onclick="showScreen('dict')" class="bg-white text-sky-700 font-bold px-5 py-2.5 rounded-full hover:bg-sky-50 transition whitespace-nowrap btn-bounce shadow">
+                    도감에서 관계 보기
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. SHAPE DICTIONARY SCREEN -->
+        <section id="screen-dict" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-3xl font-extrabold text-slate-800">도형 성질 도감</h2>
+                    <p class="text-slate-500 text-sm">사각형마다 어떤 특징이 있는지 알아봐요.</p>
+                </div>
+                <button onclick="showScreen('menu')" class="bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 px-4 py-2 rounded-full font-bold text-sm transition">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> 메뉴로
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex gap-2 overflow-x-auto pb-2" id="dict-tabs"></div>
+
+            <!-- Active Shape Card -->
+            <div id="dict-card" class="bg-white rounded-3xl p-6 md:p-8 card-shadow border border-slate-100 grid md:grid-cols-2 gap-8 items-center">
+                <div class="flex flex-col items-center justify-center bg-slate-50 rounded-2xl p-6 min-h-[220px]">
+                    <div id="dict-svg-container" class="w-full flex justify-center"></div>
+                    <span id="dict-shape-name" class="font-gaegu text-3xl font-extrabold text-sky-600 mt-4">사다리꼴</span>
+                </div>
+                <div class="space-y-4">
+                    <div>
+                        <span class="text-xs font-extrabold text-sky-600 bg-sky-100 px-3 py-1 rounded-full">정의</span>
+                        <p id="dict-def" class="text-lg font-bold text-slate-800 mt-2">평행한 변이 한 쌍이라도 있는 사각형</p>
+                    </div>
+                    <div>
+                        <span class="text-xs font-extrabold text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full">핵심 특징</span>
+                        <ul id="dict-features" class="list-disc list-inside text-sm text-slate-600 mt-2 space-y-1"></ul>
+                    </div>
+                    <div class="p-3 bg-amber-50 rounded-xl border border-amber-200">
+                        <span class="text-xs font-bold text-amber-800"><i class="fa-solid fa-star text-amber-500 mr-1"></i>탐정 팁!</span>
+                        <p id="dict-tip" class="text-xs text-amber-900 mt-1">가장 넓은 의미의 사각형 분류입니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hierarchy Diagram Card -->
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-slate-100">
+                <h3 class="font-extrabold text-slate-800 mb-3 text-lg"><i class="fa-solid fa-sitemap text-sky-500 mr-2"></i>사각형의 포함 관계 한눈에 보기</h3>
+                <div class="p-4 bg-sky-50 rounded-2xl text-center text-sm space-y-3 font-bold text-slate-700">
+                    <div class="bg-white p-2 rounded-xl border border-sky-200 inline-block px-6">사각형</div>
+                    <div>↓ (평행한 변이 한 쌍이라도 있음)</div>
+                    <div class="bg-white p-2 rounded-xl border border-sky-200 inline-block px-6">사다리꼴</div>
+                    <div>↓ (마주 보는 두 쌍의 변이 서로 평행함)</div>
+                    <div class="bg-white p-2 rounded-xl border border-sky-200 inline-block px-6">평행사변형</div>
+                    <div class="grid grid-cols-2 gap-4 max-w-md mx-auto pt-2">
+                        <div class="bg-indigo-50 p-2 rounded-xl border border-indigo-200">
+                            <div>직사각형</div>
+                            <div class="text-xs font-normal text-slate-500 mt-1">네 각이 모두 직각</div>
+                        </div>
+                        <div class="bg-purple-50 p-2 rounded-xl border border-purple-200">
+                            <div>마름모</div>
+                            <div class="text-xs font-normal text-slate-500 mt-1">네 변의 길이가 같음</div>
+                        </div>
+                    </div>
+                    <div>↓ (두 조건 모두 만족)</div>
+                    <div class="bg-amber-100 text-amber-900 p-3 rounded-xl border border-amber-300 inline-block px-8 font-extrabold">
+                        정사각형 ⭐
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. DETECTIVE QUIZ SCREEN -->
+        <section id="screen-quiz" class="hidden space-y-4">
+            <div class="bg-white rounded-2xl p-4 card-shadow flex justify-between items-center border border-slate-100">
+                <div class="flex items-center gap-3">
+                    <button onclick="confirmExit()" class="text-slate-400 hover:text-red-500 text-lg transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">추리 퀴즈</span>
+                        <span id="quiz-progress-text" class="text-xs text-slate-400 ml-2 font-bold">문제 1 / 5</span>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-slate-400 font-bold">점수</span>
+                    <div id="quiz-score" class="text-lg font-black text-emerald-600">0</div>
+                </div>
+            </div>
+
+            <!-- Detective Case Card -->
+            <div class="bg-white rounded-3xl p-6 md:p-8 card-shadow border border-slate-100 space-y-6">
+                <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-800">사건 단서 보고 사각형 맞히기</h3>
+                        <p class="text-xs text-slate-500">단서를 읽고 가장 정밀하게 해당되는 사각형을 찾아보세요!</p>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider">발견된 단서 목록</h4>
+                    <div id="quiz-clues" class="space-y-2"></div>
+                </div>
+
+                <div class="pt-2">
+                    <h4 class="text-xs font-extrabold text-slate-400 uppercase tracking-wider mb-3">어떤 사각형일까요?</h4>
+                    <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                </div>
+
+                <div id="quiz-feedback" class="hidden p-4 rounded-2xl text-center font-bold text-sm"></div>
+            </div>
+        </section>
+
+        <!-- 4. SPEED SORTING GAME SCREEN -->
+        <section id="screen-sort" class="hidden space-y-4">
+            <div class="bg-white rounded-2xl p-4 card-shadow flex justify-between items-center border border-slate-100">
+                <div class="flex items-center gap-3">
+                    <button onclick="confirmExit()" class="text-slate-400 hover:text-red-500 text-lg transition">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <div>
+                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800">스피드 분류</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="text-amber-600 font-extrabold text-lg flex items-center gap-1.5">
+                        <i class="fa-solid fa-stopwatch animate-pulse"></i>
+                        <span id="sort-timer">30</span>s
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 font-bold">성공한 분류</span>
+                        <div id="sort-score" class="text-lg font-black text-amber-600">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sorting Playing Area -->
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-slate-100 space-y-6 text-center">
+                <div>
+                    <span class="text-xs font-bold text-slate-400">현재 도형</span>
+                    <div id="sort-shape-display" class="my-4 flex flex-col items-center justify-center p-6 bg-slate-50 rounded-2xl min-h-[160px]"></div>
+                    <h3 id="sort-shape-title" class="text-2xl font-black text-slate-800 font-gaegu">이 도형은 사다리꼴일까요?</h3>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-2">
+                    <button onclick="submitSort(true)" class="bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-5 rounded-2xl shadow-lg transition btn-bounce flex flex-col items-center justify-center gap-1">
+                        <i class="fa-solid fa-circle-check text-3xl"></i>
+                        <span class="text-xl">맞아요 (O)</span>
+                    </button>
+                    <button onclick="submitSort(false)" class="bg-rose-500 hover:bg-rose-600 text-white font-extrabold py-5 rounded-2xl shadow-lg transition btn-bounce flex flex-col items-center justify-center gap-1">
+                        <i class="fa-solid fa-circle-xmark text-3xl"></i>
+                        <span class="text-xl">아니에요 (X)</span>
+                    </button>
+                </div>
+
+                <div id="sort-feedback" class="hidden p-3 rounded-xl text-center font-bold text-sm"></div>
+            </div>
+        </section>
+
+        <!-- 5. RESULT SCREEN -->
+        <section id="screen-result" class="hidden max-w-md mx-auto w-full bg-white rounded-3xl p-8 card-shadow border border-slate-100 text-center space-y-6">
+            <div class="inline-block p-4 bg-amber-100 rounded-full text-amber-500 text-4xl mb-2">
+                <i class="fa-solid fa-award"></i>
+            </div>
+            <div>
+                <h3 class="text-3xl font-extrabold text-slate-800">임무 완료!</h3>
+                <p id="result-subtitle" class="text-slate-500 text-sm mt-1">훌륭하게 탐정 임무를 수행했습니다.</p>
+            </div>
+
+            <div class="bg-slate-50 rounded-2xl p-4 grid grid-cols-2 gap-4 text-center">
+                <div class="border-r border-slate-200">
+                    <div class="text-xs text-slate-400 font-bold">획득 점수</div>
+                    <div id="result-score" class="text-2xl font-black text-sky-600 mt-1">0점</div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-400 font-bold">탐정 칭호</div>
+                    <div id="result-rank" class="text-lg font-black text-amber-600 mt-1">초보 탐정</div>
+                </div>
+            </div>
+
+            <!-- Leaderboard Score Submit Box -->
+            <div class="bg-sky-50 rounded-2xl p-4 border border-sky-100 space-y-3">
+                <p class="text-xs font-bold text-sky-800">🏆 랭킹에 내 기록 등록하기</p>
+                <div class="flex gap-2">
+                    <input type="text" id="player-nickname" placeholder="탐정 닉네임 (예: 수학왕)" maxlength="10" class="flex-grow px-3 py-2 text-sm rounded-xl border border-sky-200 focus:outline-none focus:ring-2 focus:ring-sky-400 font-bold">
+                    <button onclick="submitScoreToLeaderboard()" id="btn-submit-score" class="bg-sky-500 hover:bg-sky-600 text-white text-xs font-extrabold px-4 py-2 rounded-xl transition whitespace-nowrap btn-bounce">
+                        등록
+                    </button>
+                </div>
+                <p id="score-submit-msg" class="text-xs text-slate-500 hidden"></p>
+            </div>
+
+            <div class="space-y-3 pt-2">
+                <button onclick="showLeaderboardModal()" class="w-full bg-amber-400 hover:bg-amber-500 text-amber-950 font-extrabold py-3 rounded-2xl shadow transition btn-bounce flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trophy"></i> 전체 랭킹 보기
+                </button>
+                <button onclick="showScreen('menu')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-3.5 rounded-2xl transition btn-bounce">
+                    메인으로 돌아가기
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Leaderboard Modal -->
+    <div id="modal-leaderboard" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 card-shadow space-y-4 max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-trophy text-amber-500 text-xl"></i>
+                    <h3 class="text-xl font-extrabold text-slate-800">탐정 명예의 전당</h3>
+                </div>
+                <button onclick="closeLeaderboardModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Tab Buttons -->
+            <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                <button id="rank-tab-quiz" onclick="loadLeaderboard('quiz')" class="flex-1 py-2 rounded-lg bg-white shadow text-sky-600 transition">추리 퀴즈</button>
+                <button id="rank-tab-sort" onclick="loadLeaderboard('sort')" class="flex-1 py-2 rounded-lg text-slate-500 transition">스피드 분류</button>
+            </div>
+
+            <!-- Ranking List Container -->
+            <div id="ranking-list" class="flex-grow overflow-y-auto space-y-2 py-2 pr-1 min-h-[200px]"></div>
+
+            <button onclick="closeLeaderboardModal()" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-extrabold py-3 rounded-xl transition btn-bounce">
+                닫기
+            </button>
+        </div>
+    </div>
+
+    <footer class="text-center py-4 text-xs text-slate-400 border-t border-slate-100 bg-white/50">
+        초등 4학년 수학 탐험대 &copy; 사각형의 성질 마스터 프로그램
+    </footer>
+
+    <!-- Audio Manager Script -->
+    <script>
+        class SoundManager {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+            playCorrect() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.1);
+                osc.frequency.setValueAtTime(783.99, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            }
+            playWrong() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.setValueAtTime(180, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+            playClick() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(450, now);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            }
+        }
+        const sound = new SoundManager();
+
+        function toggleAudio() {
+            sound.muted = !sound.muted;
+            const icon = document.getElementById('audio-icon');
+            icon.className = sound.muted ? 'fa-solid fa-volume-xmark text-slate-400' : 'fa-solid fa-volume-high text-slate-700';
+            if (!sound.muted) sound.playClick();
+        }
+    </script>
+
+    <!-- Main Logic Script -->
+    <script>
+        // --- Supabase Config ---
+        const SUPABASE_URL = 'https://s5F8HDNlU-goqFBF1MI3Xg.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_s5F8HDNlU-goqFBF1MI3Xg_KYE6d3Ah';
+        
+        let supabaseClient = null;
+        try {
+            if (SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes('YOUR_SUPABASE')) {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch (e) {
+            console.warn("Supabase initialization skipped or failed:", e);
+        }
+
+        // App Global State
+        let totalScore = 0;
+        let currentQuizIndex = 0;
+        let quizScore = 0;
+        let sortTimer = null;
+        let sortTimeLeft = 30;
+        let sortScore = 0;
+        let currentSortQuestion = null;
+        let currentGameType = 'quiz'; // 'quiz' or 'sort'
+        let lastGameScore = 0;
+
+        const SHAPES = [
+            {
+                id: 'trapezoid',
+                name: '사다리꼴',
+                def: '평행한 변이 한 쌍이라도 있는 사각형',
+                features: [
+                    '마주 보는 변 중에서 한 쌍 이상이 서로 평행합니다.',
+                    '모든 평행사변형, 직사각형, 마름모, 정사각형은 사다리꼴입니다.'
+                ],
+                tip: '평행한 변이 딱 1쌍만 있어도 사다리꼴이라고 불러요!',
+                svg: `<svg width="140" height="100" viewBox="0 0 140 100" class="drop-shadow">
+                        <polygon points="35,20 105,20 125,80 15,80" fill="#bae6fd" stroke="#0284c7" stroke-width="4" stroke-linejoin="round"/>
+                      </svg>`
+            },
+            {
+                id: 'parallelogram',
+                name: '평행사변형',
+                def: '마주 보는 두 쌍의 변이 서로 평행한 사각형',
+                features: [
+                    '마주 보는 두 변의 길이가 각각 같습니다.',
+                    '마주 보는 두 각의 크기가 각각 같습니다.',
+                    '이웃하는 두 각의 크기의 합이 180°입니다.'
+                ],
+                tip: '마주 보는 변이 쌍쌍이 평행해요!',
+                svg: `<svg width="140" height="100" viewBox="0 0 140 100" class="drop-shadow">
+                        <polygon points="40,20 125,20 100,80 15,80" fill="#cbd5e1" stroke="#475569" stroke-width="4" stroke-linejoin="round"/>
+                      </svg>`
+            },
+            {
+                id: 'rhombus',
+                name: '마름모',
+                def: '네 변의 길이가 모두 같은 사각형',
+                features: [
+                    '네 변의 길이가 모두 같습니다.',
+                    '마주 보는 두 쌍의 변이 서로 평행합니다.',
+                    '마주 보는 두 각의 크기가 같습니다.'
+                ],
+                tip: '네 변의 길이만 같으면 마름모예요!',
+                svg: `<svg width="140" height="100" viewBox="0 0 140 100" class="drop-shadow">
+                        <polygon points="70,15 120,50 70,85 20,50" fill="#e9d5ff" stroke="#9333ea" stroke-width="4" stroke-linejoin="round"/>
+                      </svg>`
+            },
+            {
+                id: 'rectangle',
+                name: '직사각형',
+                def: '네 각이 모두 직각인 사각형',
+                features: [
+                    '네 각이 모두 직각(90°)입니다.',
+                    '마주 보는 두 쌍의 변이 서로 평행하고 길이가 같습니다.',
+                    '마주 보는 두 대각선의 길이가 같습니다.'
+                ],
+                tip: '각이 모두 반듯한 직각인 사각형이에요!',
+                svg: `<svg width="140" height="100" viewBox="0 0 140 100" class="drop-shadow">
+                        <rect x="20" y="25" width="100" height="50" fill="#c7d2fe" stroke="#4f46e5" stroke-width="4" stroke-linejoin="round"/>
+                      </svg>`
+            },
+            {
+                id: 'square',
+                name: '정사각형',
+                def: '네 변의 길이가 모두 같고, 네 각이 모두 직각인 사각형',
+                features: [
+                    '네 변의 길이가 모두 같고, 네 각이 모두 직각입니다.',
+                    '사다리꼴, 평행사변형, 직사각형, 마름모의 성질을 모두 가집니다.',
+                    '가장 완벽한 성질을 가진 사각형입니다.'
+                ],
+                tip: '변의 길이도 모두 같고, 각도 모두 직각인 만능 사각형!',
+                svg: `<svg width="140" height="100" viewBox="0 0 140 100" class="drop-shadow">
+                        <rect x="35" y="15" width="70" height="70" fill="#fef08a" stroke="#ca8a04" stroke-width="4" stroke-linejoin="round"/>
+                      </svg>`
+            }
+        ];
+
+        const QUIZ_DATA = [
+            {
+                clues: ["마주 보는 두 쌍의 변이 서로 평행합니다.", "네 각의 크기가 모두 90°(직각)입니다.", "하지만 네 변의 길이가 모두 같지는 않습니다."],
+                answer: 'rectangle'
+            },
+            {
+                clues: ["마주 보는 변 중에서 딱 한 쌍만 서로 평행합니다.", "나머지 한 쌍은 평행하지 않습니다."],
+                answer: 'trapezoid'
+            },
+            {
+                clues: ["네 변의 길이가 모두 같습니다.", "네 각이 모두 직각인 것은 아닙니다."],
+                answer: 'rhombus'
+            },
+            {
+                clues: ["마주 보는 두 쌍의 변이 서로 평행하고 길이가 같습니다.", "직각이 없고, 네 변의 길이가 모두 같지는 않습니다."],
+                answer: 'parallelogram'
+            },
+            {
+                clues: ["네 변의 길이가 모두 같습니다.", "네 각의 크기가 모두 직각입니다.", "직사각형도 되고 마름모도 되는 사각형입니다."],
+                answer: 'square'
+            }
+        ];
+
+        const SORT_QUESTIONS = [
+            { shapeId: 'square', targetProperty: '사다리꼴', isTrue: true },
+            { shapeId: 'rectangle', targetProperty: '마름모', isTrue: false },
+            { shapeId: 'rhombus', targetProperty: '평행사변형', isTrue: true },
+            { shapeId: 'trapezoid', targetProperty: '평행사변형', isTrue: false },
+            { shapeId: 'square', targetProperty: '직사각형', isTrue: true },
+            { shapeId: 'parallelogram', targetProperty: '직사각형', isTrue: false },
+            { shapeId: 'rhombus', targetProperty: '네 변의 길이가 같은 사각형', isTrue: true },
+            { shapeId: 'rectangle', targetProperty: '네 각이 모두 직각인 사각형', isTrue: true },
+            { shapeId: 'trapezoid', targetProperty: '네 변의 길이가 모두 같은 사각형', isTrue: false }
+        ];
+
+        function showScreen(screenId) {
+            sound.playClick();
+            if (sortTimer) clearInterval(sortTimer);
+            
+            ['menu', 'dict', 'quiz', 'sort', 'result'].forEach(id => {
+                document.getElementById(`screen-${id}`).classList.add('hidden');
+            });
+            document.getElementById(`screen-${screenId}`).classList.remove('hidden');
+
+            if (screenId === 'dict') {
+                renderDictTabs();
+                selectDictShape(SHAPES[0].id);
+            }
+        }
+
+        // --- DICTIONARY ---
+        function renderDictTabs() {
+            const tabsContainer = document.getElementById('dict-tabs');
+            tabsContainer.innerHTML = '';
+            SHAPES.forEach(shape => {
+                const btn = document.createElement('button');
+                btn.id = `tab-${shape.id}`;
+                btn.className = `px-4 py-2 rounded-2xl font-bold text-sm whitespace-nowrap transition btn-bounce border border-slate-200 bg-white text-slate-600 hover:bg-slate-50`;
+                btn.innerText = shape.name;
+                btn.onclick = () => selectDictShape(shape.id);
+                tabsContainer.appendChild(btn);
+            });
+        }
+
+        function selectDictShape(id) {
+            sound.playClick();
+            const shape = SHAPES.find(s => s.id === id);
+            
+            SHAPES.forEach(s => {
+                const t = document.getElementById(`tab-${s.id}`);
+                if (t) {
+                    if (s.id === id) {
+                        t.className = `px-4 py-2 rounded-2xl font-bold text-sm whitespace-nowrap transition shadow-md bg-sky-500 text-white border border-sky-500`;
+                    } else {
+                        t.className = `px-4 py-2 rounded-2xl font-bold text-sm whitespace-nowrap transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-50`;
+                    }
+                }
+            });
+
+            document.getElementById('dict-svg-container').innerHTML = shape.svg;
+            document.getElementById('dict-shape-name').innerText = shape.name;
+            document.getElementById('dict-def').innerText = shape.def;
+            document.getElementById('dict-tip').innerText = shape.tip;
+
+            const featuresUl = document.getElementById('dict-features');
+            featuresUl.innerHTML = '';
+            shape.features.forEach(f => {
+                const li = document.createElement('li');
+                li.innerText = f;
+                featuresUl.appendChild(li);
+            });
+        }
+
+        // --- QUIZ ---
+        function startQuiz() {
+            currentQuizIndex = 0;
+            quizScore = 0;
+            showScreen('quiz');
+            loadQuizQuestion();
+        }
+
+        function loadQuizQuestion() {
+            const q = QUIZ_DATA[currentQuizIndex];
+            document.getElementById('quiz-progress-text').innerText = `문제 ${currentQuizIndex + 1} / ${QUIZ_DATA.length}`;
+            document.getElementById('quiz-score').innerText = quizScore;
+
+            const cluesContainer = document.getElementById('quiz-clues');
+            cluesContainer.innerHTML = '';
+            q.clues.forEach((clue, idx) => {
+                const item = document.createElement('div');
+                item.className = "bg-slate-50 border border-slate-200 p-3 rounded-xl flex items-center gap-3 text-sm font-bold text-slate-700";
+                item.innerHTML = `<span class="bg-emerald-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs">${idx + 1}</span> ${clue}`;
+                cluesContainer.appendChild(item);
+            });
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+            SHAPES.forEach(s => {
+                const btn = document.createElement('button');
+                btn.className = "p-3.5 bg-slate-50 hover:bg-sky-50 border-2 border-slate-200 hover:border-sky-400 rounded-2xl font-extrabold text-slate-700 text-base transition btn-bounce text-left flex items-center justify-between";
+                btn.innerHTML = `<span>${s.name}</span> <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>`;
+                btn.onclick = () => submitQuizAnswer(s.id);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('quiz-feedback').className = "hidden p-4 rounded-2xl text-center font-bold text-sm";
+        }
+
+        function submitQuizAnswer(selectedId) {
+            const q = QUIZ_DATA[currentQuizIndex];
+            const feedback = document.getElementById('quiz-feedback');
+            feedback.classList.remove('hidden');
+
+            if (selectedId === q.answer) {
+                sound.playCorrect();
+                quizScore += 20;
+                totalScore += 20;
+                document.getElementById('header-score').innerText = `${totalScore} 점`;
+                feedback.className = "p-4 bg-emerald-100 text-emerald-800 rounded-2xl text-center font-bold text-sm animate-bounce";
+                feedback.innerText = "🎉 정답입니다! 정확한 탐정 추리예요!";
+            } else {
+                sound.playWrong();
+                const correctShape = SHAPES.find(s => s.id === q.answer);
+                feedback.className = "p-4 bg-rose-100 text-rose-800 rounded-2xl text-center font-bold text-sm";
+                feedback.innerText = `아쉬워요! 정답은 [${correctShape.name}] 입니다.`;
+            }
+
+            setTimeout(() => {
+                currentQuizIndex++;
+                if (currentQuizIndex < QUIZ_DATA.length) {
+                    loadQuizQuestion();
+                } else {
+                    endGame("추리 퀴즈 완료!", quizScore, "명탐정", 'quiz');
+                }
+            }, 1200);
+        }
+
+        // --- SPEED SORT GAME ---
+        function startSortGame() {
+            sortScore = 0;
+            sortTimeLeft = 30;
+            document.getElementById('sort-score').innerText = sortScore;
+            document.getElementById('sort-timer').innerText = sortTimeLeft;
+            showScreen('sort');
+            nextSortQuestion();
+
+            sortTimer = setInterval(() => {
+                sortTimeLeft--;
+                document.getElementById('sort-timer').innerText = sortTimeLeft;
+                if (sortTimeLeft <= 0) {
+                    clearInterval(sortTimer);
+                    endGame("스피드 분류 완료!", sortScore * 10, "스피드 탐정", 'sort');
+                }
+            }, 1000);
+        }
+
+        function nextSortQuestion() {
+            currentSortQuestion = SORT_QUESTIONS[Math.floor(Math.random() * SORT_QUESTIONS.length)];
+            const shape = SHAPES.find(s => s.id === currentSortQuestion.shapeId);
+            
+            document.getElementById('sort-shape-display').innerHTML = shape.svg;
+            document.getElementById('sort-shape-title').innerText = `이 [${shape.name}]은(는) '${currentSortQuestion.targetProperty}' 이(가) 맞을까요?`;
+            document.getElementById('sort-feedback').className = "hidden p-3 rounded-xl text-center font-bold text-sm";
+        }
+
+        function submitSort(userAnswer) {
+            const isCorrect = (userAnswer === currentSortQuestion.isTrue);
+            const feedback = document.getElementById('sort-feedback');
+            feedback.classList.remove('hidden');
+
+            if (isCorrect) {
+                sound.playCorrect();
+                sortScore++;
+                totalScore += 10;
+                document.getElementById('sort-score').innerText = sortScore;
+                document.getElementById('header-score').innerText = `${totalScore} 점`;
+                feedback.className = "p-3 bg-emerald-100 text-emerald-800 rounded-xl text-center font-bold text-sm";
+                feedback.innerText = "정답! 👏";
+            } else {
+                sound.playWrong();
+                feedback.className = "p-3 bg-rose-100 text-rose-800 rounded-xl text-center font-bold text-sm";
+                feedback.innerText = "아쉬워요! ❌";
+            }
+
+            setTimeout(() => {
+                if (sortTimeLeft > 0) nextSortQuestion();
+            }, 500);
+        }
+
+        // --- END GAME & LEADERBOARD ---
+        function endGame(title, score, defaultTitle, gameType) {
+            currentGameType = gameType;
+            lastGameScore = score;
+
+            document.getElementById('result-subtitle').innerText = title;
+            document.getElementById('result-score').innerText = `${score}점`;
+            document.getElementById('result-rank').innerText = score >= 80 ? "전설의 명탐정" : score >= 50 ? "베테랑 탐정" : defaultTitle;
+            
+            document.getElementById('score-submit-msg').classList.add('hidden');
+            document.getElementById('btn-submit-score').disabled = false;
+
+            showScreen('result');
+            if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+
+        async function submitScoreToLeaderboard() {
+            const nicknameInput = document.getElementById('player-nickname');
+            const nickname = nicknameInput.value.trim();
+            const msgEl = document.getElementById('score-submit-msg');
+
+            if (!nickname) {
+                alert("탐정 닉네임을 입력해주세요!");
+                return;
+            }
+
+            if (!supabaseClient) {
+                msgEl.innerText = "Supabase가 설정되지 않았습니다.";
+                msgEl.className = "text-xs text-rose-500 font-bold";
+                msgEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                document.getElementById('btn-submit-score').disabled = true;
+                const { error } = await supabaseClient.from('leaderboards').insert([
+                    { nickname: nickname, score: lastGameScore, game_type: currentGameType }
+                ]);
+
+                if (error) throw error;
+
+                sound.playCorrect();
+                msgEl.innerText = "🏆 랭킹에 성공적으로 등록되었습니다!";
+                msgEl.className = "text-xs text-emerald-600 font-bold";
+                msgEl.classList.remove('hidden');
+            } catch (err) {
+                console.error("Score submit error:", err);
+                msgEl.innerText = "등록 중 오류가 발생했습니다.";
+                msgEl.className = "text-xs text-rose-500 font-bold";
+                msgEl.classList.remove('hidden');
+            }
+        }
+
+        function showLeaderboardModal() {
+            sound.playClick();
+            document.getElementById('modal-leaderboard').classList.remove('hidden');
+            loadLeaderboard('quiz');
+        }
+
+        function closeLeaderboardModal() {
+            sound.playClick();
+            document.getElementById('modal-leaderboard').classList.add('hidden');
+        }
+
+        async function loadLeaderboard(gameType) {
+            const listEl = document.getElementById('ranking-list');
+            const quizTab = document.getElementById('rank-tab-quiz');
+            const sortTab = document.getElementById('rank-tab-sort');
+
+            if (gameType === 'quiz') {
+                quizTab.className = "flex-1 py-2 rounded-lg bg-white shadow text-sky-600 transition";
+                sortTab.className = "flex-1 py-2 rounded-lg text-slate-500 transition";
+            } else {
+                sortTab.className = "flex-1 py-2 rounded-lg bg-white shadow text-amber-600 transition";
+                quizTab.className = "flex-1 py-2 rounded-lg text-slate-500 transition";
+            }
+
+            listEl.innerHTML = '<div class="text-center text-slate-400 py-8 font-bold">기록 불러오는 중...</div>';
+
+            if (!supabaseClient) {
+                listEl.innerHTML = '<div class="text-center text-slate-400 py-8 font-bold">Supabase 연결이 필요합니다.</div>';
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('leaderboards')
+                    .select('*')
+                    .eq('game_type', gameType)
+                    .order('score', { ascending: false })
+                    .limit(10);
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    listEl.innerHTML = '<div class="text-center text-slate-400 py-8 font-bold">등록된 기록이 아직 없습니다. 첫 번째 탐정이 되어보세요!</div>';
+                    return;
+                }
+
+                listEl.innerHTML = '';
+                data.forEach((item, index) => {
+                    const rankMedal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`;
+                    const div = document.createElement('div');
+                    div.className = "flex justify-between items-center bg-slate-50 p-3 rounded-2xl border border-slate-100 font-bold text-sm";
+                    div.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 text-center text-base">${rankMedal}</span>
+                            <span class="text-slate-800">${item.nickname}</span>
+                        </div>
+                        <span class="text-sky-600 font-black">${item.score}점</span>
+                    `;
+                    listEl.appendChild(div);
+                });
+            } catch (err) {
+                console.error("Leaderboard load error:", err);
+                listEl.innerHTML = '<div class="text-center text-rose-500 py-8 font-bold">랭킹을 불러오지 못했습니다.</div>';
+            }
+        }
+
+        function confirmExit() {
+            if (confirm("게임을 중단하고 메뉴로 돌아가시겠습니까?")) {
+                if (sortTimer) clearInterval(sortTimer);
+                showScreen('menu');
+            }
+        }
+
+        // Initial setup
+        window.onload = function() {
+            showScreen('menu');
+        };
+    </script>
+</body>
+</html>
